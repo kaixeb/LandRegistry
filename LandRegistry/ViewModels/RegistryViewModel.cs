@@ -41,6 +41,9 @@
 
         public ObservableCollection<DetailedRegistry> DetailedRegistryList { get; set; }
 
+        //Adding Search
+
+
         public RelayCommand AddCommand
         {
             get
@@ -68,7 +71,7 @@
 
         public RelayCommand ChangeCommand
         {
-            get
+            get 
             {
                 return changeCommand ??
                     (changeCommand = new RelayCommand(obj =>
