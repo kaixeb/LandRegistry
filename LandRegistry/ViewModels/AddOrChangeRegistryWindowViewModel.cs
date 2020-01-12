@@ -104,7 +104,7 @@
 
         public void OnPropertyChanged([CallerMemberName]string propertyName = "")
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); //обновляет переданное свойство объекта, который его вызвал
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); //обновляет свойства объекта, который его вызвал
         }
     }
 }

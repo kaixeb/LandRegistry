@@ -39,10 +39,46 @@
             }
         }
 
-        public ObservableCollection<DetailedRegistry> DetailedRegistryList { get; set; }
+        private ObservableCollection<DetailedRegistry> detailedRegistries;
 
-        //Adding Search
+        public ObservableCollection<DetailedRegistry> DetailedRegistryList
+        {
+            get { return detailedRegistries; }
+            set
+            {
+                detailedRegistries = value;
+                OnPropertyChanged("DetailedRegistryList");
+            }
+        }
 
+        //Поиск
+        private ObservableCollection<DetailedRegistry> nonFilteredDetailedRegistryList;
+        private string searchText;
+        public string SearchText
+        {
+            get { return searchText; }
+            set
+            {
+                searchText = value;
+                OnPropertyChanged("SearchText");
+                FilterItemsByCadNum();
+            }
+        }
+
+        private void FilterItemsByCadNum()
+        {
+            if (!string.IsNullOrEmpty(SearchText))
+            {
+                DetailedRegistryList = new ObservableCollection<DetailedRegistry>
+                    (
+                    from item in nonFilteredDetailedRegistryList where item.CadNum == Convert.ToInt32(SearchText) select item
+                    );
+            }
+            else
+            {
+                DetailedRegistryList = nonFilteredDetailedRegistryList;
+            }
+        }
 
         public RelayCommand AddCommand
         {
@@ -71,7 +107,7 @@
 
         public RelayCommand ChangeCommand
         {
-            get 
+            get
             {
                 return changeCommand ??
                     (changeCommand = new RelayCommand(obj =>
@@ -110,9 +146,9 @@
                                       lrdb.Registry.Remove(detailedRegistry.Registry);
                                       lrdb.SaveChanges();
                                   }
-
+                                  DetailedRegistryList = nonFilteredDetailedRegistryList;
                                   DetailedRegistryList.Remove(detailedRegistry); // убираем из списка
-
+                                  nonFilteredDetailedRegistryList = DetailedRegistryList;
                                   Registry registry = new Registry(); //новая запись для бд
 
                                   AddNewDetailedRegistry(detailedRegistry, registry, AOCRWindow); //добавляем новую запись в бд и в список
@@ -220,7 +256,7 @@
                 + " " + owner.Patronymic
                 + "\n" + owner.Inn
                 + "\n" + owner.ConNum
-                + "\n" + owner.Email;
+                + "\n" + owner.Email ?? "-";
 
             //добавляем в базу данных объект registry и в список объект detailedRegistry
             using (landregistrydbContext lrdb = new landregistrydbContext())
@@ -228,7 +264,10 @@
                 lrdb.Registry.Add(registry);
                 lrdb.SaveChanges();
             }
+
+            SearchText = null;
             DetailedRegistryList.Add(detailedRegistry);
+            nonFilteredDetailedRegistryList = DetailedRegistryList;
             SelectedRegistry = detailedRegistry;
         }
 
@@ -242,7 +281,9 @@
                           DetailedRegistry detailedRegistry = obj as DetailedRegistry;
                           if (detailedRegistry != null)
                           {
+                              SearchText = null;
                               DetailedRegistryList.Remove(detailedRegistry);
+                              nonFilteredDetailedRegistryList = DetailedRegistryList;
                               using (landregistrydbContext lrdb = new landregistrydbContext())
                               {
                                   lrdb.Registry.Remove(detailedRegistry.Registry); //удаление из базы данных соответствующего объекта registry                                  
@@ -295,6 +336,7 @@
                               };
 
                 DetailedRegistryList = new ObservableCollection<DetailedRegistry>(records);
+                nonFilteredDetailedRegistryList = DetailedRegistryList;
             }
         }
 
