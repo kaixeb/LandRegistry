@@ -3,8 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LandRegistry.Views"
+        
+        xmlns:local="using:XAML_SearchBox"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        
         mc:Ignorable="d"
         
         Background="{DynamicResource MaterialDesignDarkForeground}"
@@ -13,17 +15,13 @@
         TextElement.FontSize="14"
         FontFamily="{materialDesign:MaterialDesignFont}"
         Title="Реестр" Height="600" Width="1200" Icon="database.png" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
-    
+
     <Grid>
         <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20">
             <Rectangle Fill="CadetBlue" Width="120" Height="40" RadiusX="10" RadiusY="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <TextBlock x:Name="curUserCaption" x:FieldModifier="public" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Гость" FontWeight="Bold"  TextWrapping="Wrap" />
         </Grid>
-        <Menu Width="150" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="13">
-            <MenuItem Header="Файл">
-                <MenuItem Header="Экспорт" InputGestureText="Ctrl+E"></MenuItem>
-            </MenuItem>
-        </Menu>
+
         <ListView Margin="155,77,33,26" SelectedItem="{Binding SelectedRegistry}" ItemsSource="{Binding DetailedRegistryList}">
             <ListView.View>
                 <GridView>
@@ -43,6 +41,12 @@
         </ListView>
         <Button Command="{Binding AddCommand}" x:Name="AddBut" Content="Добавить" HorizontalAlignment="Left" Margin="25,77,0,0" VerticalAlignment="Top" IsEnabled="False"/>
         <Button Command="{Binding ChangeCommand}" CommandParameter="{Binding SelectedRegistry}" x:Name="ChangeBut" Content="Изменить" HorizontalAlignment="Left" Margin="25,137,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedRegistry}" x:Name="DeleteBut" Content="Удалить" HorizontalAlignment="Left" Margin="25,192,0,0" VerticalAlignment="Top" IsEnabled="False" Width="97"/>
+        <Button Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedRegistry}" x:Name="DeleteBut" Content="Удалить" HorizontalAlignment="Left" Margin="25,197,0,0" VerticalAlignment="Top" IsEnabled="False" Width="97"/>
+        <TextBlock HorizontalAlignment="Left" Margin="353,37,0,0" Text="Поиск:" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.696,0.849"/>
+        <TextBox Text="{Binding CadNumSearchText, UpdateSourceTrigger = PropertyChanged}"  FontSize="12" materialDesign:TextFieldAssist.HasOutlinedTextField="True" materialDesign:HintAssist.Hint="Кад. номер" HorizontalAlignment="Left" Margin="405,25,0,0" VerticalAlignment="Top" Width="135"/>
+        <TextBox Text="{Binding DistrictSearchText, UpdateSourceTrigger=PropertyChanged}"  FontSize="12" materialDesign:TextFieldAssist.HasOutlinedTextField="True" materialDesign:HintAssist.Hint="Район" HorizontalAlignment="Left" Margin="559,25,0,0" VerticalAlignment="Top" Width="135"/>
+        <TextBox Text="{Binding SettlementSearchText, UpdateSourceTrigger=PropertyChanged}"  FontSize="12" materialDesign:TextFieldAssist.HasOutlinedTextField="True" materialDesign:HintAssist.Hint="Поселение" HorizontalAlignment="Left" Margin="713,25,0,0" VerticalAlignment="Top" Width="135"/>
+        <Button Command="{Binding ExtractCommand}" CommandParameter="{Binding SelectedRegistry}" x:Name="ExtractBut" Content="Извлечь" HorizontalAlignment="Left" Margin="25,257,0,0" VerticalAlignment="Top" IsEnabled="True" Width="97"/>
+
     </Grid>
 </Window>

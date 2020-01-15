@@ -7,7 +7,7 @@ namespace LandRegistry.Models
         public int CadNum { get; set; }
         public string Address { get; set; }
         public int Area { get; set; }
-        public int Price { get; set; }                
+        public int Price { get; set; }
         public string DistrictInfo { get; set; }
         public string SettlementInfo { get; set; }
         public string UsePurposeInfo { get; set; }

@@ -27,6 +27,8 @@
 
         private RelayCommand deleteCommand;
 
+        private RelayCommand extractCommand;
+
         private DetailedRegistry selectedRegistry;
 
         public DetailedRegistry SelectedRegistry
@@ -39,10 +41,105 @@
             }
         }
 
-        public ObservableCollection<DetailedRegistry> DetailedRegistryList { get; set; }
+        private ObservableCollection<DetailedRegistry> detailedRegistries;
 
-        //Adding Search
+        public ObservableCollection<DetailedRegistry> DetailedRegistryList
+        {
+            get { return detailedRegistries; }
+            set
+            {
+                detailedRegistries = value;
+                OnPropertyChanged("DetailedRegistryList");
+            }
+        }
 
+        //Поиск
+        private ObservableCollection<DetailedRegistry> nonFilteredDetailedRegistryList;
+
+        private string cadNumSearchText;
+        public string CadNumSearchText
+        {
+            get { return cadNumSearchText; }
+            set
+            {
+                cadNumSearchText = value;
+                OnPropertyChanged("CadNumSearchText");
+                FilterItemsByCadNum();
+            }
+        }
+
+        private string districtSearchText;
+
+        public string DistrictSearchText
+        {
+            get => districtSearchText;
+            set
+            {
+                districtSearchText = value;
+                OnPropertyChanged("DistrictSearchText");
+                FilterItemsByDistrict();
+            }
+        }
+
+        private string settlementSearchText;
+        public string SettlementSearchText
+        {
+            get => settlementSearchText;
+            set
+            {
+                settlementSearchText = value;
+                OnPropertyChanged("SettlementSearchText");
+                FilterItemsBySettlement();
+            }
+        }
+
+        private void FilterItemsByCadNum()
+        {
+            if (!string.IsNullOrEmpty(CadNumSearchText))
+            {
+                if (int.TryParse(CadNumSearchText, out _))
+                {
+                    DetailedRegistryList = new ObservableCollection<DetailedRegistry>
+                        (
+                        from item in nonFilteredDetailedRegistryList where item.CadNum == Convert.ToInt32(CadNumSearchText) select item
+                        );
+                }
+            }
+            else
+            {
+                DetailedRegistryList = nonFilteredDetailedRegistryList;
+            }
+        }
+
+        private void FilterItemsByDistrict()
+        {
+            if (!string.IsNullOrEmpty(DistrictSearchText))
+            {
+                DetailedRegistryList = new ObservableCollection<DetailedRegistry>
+                    (
+                    from item in nonFilteredDetailedRegistryList where item.DistrictInfo.Contains(DistrictSearchText) select item
+                    );
+            }
+            else
+            {
+                DetailedRegistryList = nonFilteredDetailedRegistryList;
+            }
+        }
+
+        private void FilterItemsBySettlement()
+        {
+            if (!string.IsNullOrEmpty(SettlementSearchText))
+            {
+                DetailedRegistryList = new ObservableCollection<DetailedRegistry>
+                    (
+                    from item in nonFilteredDetailedRegistryList where item.SettlementInfo.Contains(SettlementSearchText) select item
+                    );
+            }
+            else
+            {
+                DetailedRegistryList = nonFilteredDetailedRegistryList;
+            }
+        }
 
         public RelayCommand AddCommand
         {
@@ -64,14 +161,13 @@
 
                               AddNewDetailedRegistry(detailedRegistry, registry, AOCRWindow);
                           }
-
                       }));
             }
         }
 
         public RelayCommand ChangeCommand
         {
-            get 
+            get
             {
                 return changeCommand ??
                     (changeCommand = new RelayCommand(obj =>
@@ -110,15 +206,60 @@
                                       lrdb.Registry.Remove(detailedRegistry.Registry);
                                       lrdb.SaveChanges();
                                   }
-
+                                  DetailedRegistryList = nonFilteredDetailedRegistryList;
                                   DetailedRegistryList.Remove(detailedRegistry); // убираем из списка
-
+                                  nonFilteredDetailedRegistryList = DetailedRegistryList;
                                   Registry registry = new Registry(); //новая запись для бд
 
                                   AddNewDetailedRegistry(detailedRegistry, registry, AOCRWindow); //добавляем новую запись в бд и в список
                               }
                           }
-                      }));
+                      },
+                      (obj) => DetailedRegistryList.Count > 0));
+            }
+        }
+
+        public RelayCommand DeleteCommand
+        {
+            get
+            {
+                return deleteCommand ??
+                    (deleteCommand = new RelayCommand(obj =>
+                      {
+                          DetailedRegistry detailedRegistry = obj as DetailedRegistry;
+                          if (detailedRegistry != null)
+                          {
+                              CadNumSearchText = null;
+                              DistrictSearchText = null;
+                              SettlementSearchText = null;
+                              DetailedRegistryList.Remove(detailedRegistry);
+                              nonFilteredDetailedRegistryList = DetailedRegistryList;
+                              using (landregistrydbContext lrdb = new landregistrydbContext())
+                              {
+                                  lrdb.Registry.Remove(detailedRegistry.Registry); //удаление из базы данных соответствующего объекта registry                                  
+                                  lrdb.SaveChanges();
+                              }
+                          }
+                      },
+                      (obj) => DetailedRegistryList.Count > 0));
+            }
+        }
+
+        public RelayCommand ExtractCommand
+        {
+            get
+            {
+                return extractCommand ??
+                    (extractCommand = new RelayCommand(obj =>
+                      {
+                          DetailedRegistry detailedRegistry = obj as DetailedRegistry;
+                          if (detailedRegistry != null)
+                          {
+                              ExtractDetailedRegistryWindow EDRW = new ExtractDetailedRegistryWindow(detailedRegistry);
+                              EDRW.Show();
+                          }
+                      },
+                    (obj) => DetailedRegistryList.Count > 0));
             }
         }
 
@@ -198,7 +339,6 @@
                 }
                 else
                 {
-                    //existOwners
                     foreach (Owner existOwn in existOwners)
                     {
                         owner.OwnId = existOwn.OwnId;
@@ -206,7 +346,7 @@
                         owner.Surname = existOwn.Surname;
                         owner.Patronymic = existOwn.Patronymic;
                         owner.ConNum = existOwn.ConNum;
-                        owner.Email = existOwn.Email;
+                        owner.Email = existOwn.Email ?? "-";
                     } //находим его и запоминаем
                 }
             }
@@ -220,7 +360,7 @@
                 + " " + owner.Patronymic
                 + "\n" + owner.Inn
                 + "\n" + owner.ConNum
-                + "\n" + owner.Email;
+                + "\n" + owner.Email ?? "-";
 
             //добавляем в базу данных объект registry и в список объект detailedRegistry
             using (landregistrydbContext lrdb = new landregistrydbContext())
@@ -228,30 +368,13 @@
                 lrdb.Registry.Add(registry);
                 lrdb.SaveChanges();
             }
-            DetailedRegistryList.Add(detailedRegistry);
-            SelectedRegistry = detailedRegistry;
-        }
 
-        public RelayCommand DeleteCommand
-        {
-            get
-            {
-                return deleteCommand ??
-                    (deleteCommand = new RelayCommand(obj =>
-                      {
-                          DetailedRegistry detailedRegistry = obj as DetailedRegistry;
-                          if (detailedRegistry != null)
-                          {
-                              DetailedRegistryList.Remove(detailedRegistry);
-                              using (landregistrydbContext lrdb = new landregistrydbContext())
-                              {
-                                  lrdb.Registry.Remove(detailedRegistry.Registry); //удаление из базы данных соответствующего объекта registry                                  
-                                  lrdb.SaveChanges();
-                              }
-                          }
-                      },
-                      (obj) => DetailedRegistryList.Count > 0));
-            }
+            CadNumSearchText = null;
+            DistrictSearchText = null;
+            SettlementSearchText = null;
+            DetailedRegistryList.Add(detailedRegistry);
+            nonFilteredDetailedRegistryList = DetailedRegistryList;
+            SelectedRegistry = detailedRegistry;
         }
 
         private void FillRegListWithRecords()
@@ -286,7 +409,7 @@
                                   + "-" + su.EndTime.ToString()
                                   + "\n" + su.ConNum
                                   + "\n" + su.ChiefFullName
-                                  + "\n" + su.Email,
+                                  + "\n" + su.Email ?? "-",
                                   CadEngInfo = ce.Surname
                                   + " " + ce.Name
                                   + " " + ce.Patronymic,
@@ -295,6 +418,7 @@
                               };
 
                 DetailedRegistryList = new ObservableCollection<DetailedRegistry>(records);
+                nonFilteredDetailedRegistryList = DetailedRegistryList;
             }
         }
 

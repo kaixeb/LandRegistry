@@ -1,0 +1,50 @@
+﻿<Window x:Class="LandRegistry.Views.ExtractDetailedRegistryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LandRegistry.Views"
+        mc:Ignorable="d"
+        Title="Выписка" Height="400" Width="500" Icon="database.png">
+    <Grid>
+        <FlowDocumentReader>
+            <FlowDocument>
+                <Section TextAlignment="Justify" FontSize="13">
+                    <Paragraph Name="CadNum">
+                    <Run>Кадастровый номер:</Run>
+                </Paragraph>
+                <Paragraph Name="Address">
+                    <Run>Адрес:</Run>
+                </Paragraph>
+                <Paragraph Name="Area">
+                    <Run>Площадь, кв. м.: </Run>
+                </Paragraph>
+                <Paragraph Name="Price">
+                    <Run>Цена: </Run>
+                </Paragraph>
+                <Paragraph Name="DistrictInfo">
+                    <Run>Район: </Run>
+                </Paragraph>
+                <Paragraph Name="SettlementInfo">
+                    <Run>Поселение: </Run>
+                </Paragraph>
+                <Paragraph Name="UsePurposeInfo">
+                    <Run>Цель использования: </Run>
+                </Paragraph>
+                <Paragraph Name="OwnerInfo">
+                    <Run>Информация о владельце: </Run>
+                </Paragraph>
+                <Paragraph Name="ServiceUnitInfo">
+                    <Run>Информация об обслуживающем подразделении: </Run>
+                </Paragraph>
+                <Paragraph Name="CadEngInfo">
+                    <Run>Информация о кадастровом инженере: </Run>
+                </Paragraph>
+                <Paragraph Name="UpdTime">
+                    <Run>Время последнего обновления: </Run>
+                </Paragraph>
+                </Section>
+            </FlowDocument>
+        </FlowDocumentReader>
+    </Grid>
+</Window>

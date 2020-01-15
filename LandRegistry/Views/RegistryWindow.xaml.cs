@@ -10,6 +10,5 @@ namespace LandRegistry.Views
             InitializeComponent();
             DataContext = new RegistryViewModel();
         }
-
     }
 }
