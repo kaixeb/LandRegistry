@@ -36,7 +36,7 @@ namespace LandRegistry
                     }
                     else
                     {
-                        AdminPass.BorderBrush = new SolidColorBrush(Colors.Red);                        
+                        AdminPass.BorderBrush = new SolidColorBrush(Colors.Red);
                     }
                 }
             }

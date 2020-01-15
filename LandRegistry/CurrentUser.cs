@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LandRegistry
+﻿namespace LandRegistry
 {
     public static class CurrentUser
     {

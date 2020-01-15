@@ -1,13 +1,15 @@
 ﻿namespace LandRegistry.ViewModels
 {
     using LandRegistry.Models;
+    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Text.RegularExpressions;
 
-    public class AddOrChangeRegistryWindowViewModel : INotifyPropertyChanged
+    public class AddOrChangeRegistryWindowViewModel : INotifyPropertyChanged, IDataErrorInfo
     {
         public AddOrChangeRegistryWindowViewModel()
         {
@@ -44,7 +46,7 @@
         public int? Price { get; set; }
 
         public Owner Owner { get; set; }
-        
+
         private string selectedDistrict;
 
         private string selectedSettlement;
@@ -54,6 +56,93 @@
         private string selectedServiceUnit;
 
         private string selectedCadEng;
+
+        private string error;
+
+        public string this[string columnName]
+        {
+            get
+            {
+                Error = string.Empty;
+                switch (columnName)
+                {
+                    case "CadNum":
+                        bool successCadNum = int.TryParse(CadNum.ToString(), out _);
+                        if (successCadNum)
+                        {
+                            if (CadNum.ToString().Length > 6 || CadNum.ToString().Length < 1)
+                            {
+                                Error = "Кадастровый номер должен быть больше 0 и меньше 1000000.";
+                            }
+                        }
+                        else
+                        {
+                            Error = " ";
+                        }
+                        break;
+
+                    case "Address":
+                        string addressPattern = @"ул\.\s[\D]{2,30},\s(?<дом>дом\s?[\d]{1,3}$)";
+                        if (Address != null)
+                        {
+                            if (Address.Length < 80)
+                            {
+                                if (!Regex.IsMatch(Address, addressPattern, RegexOptions.IgnoreCase))
+                                {
+                                    Error = "Неверный формат адреса.";
+                                }
+                            }
+                            else
+                            {
+                                Error = "Недопустимая длина!";
+                            }
+                        }
+                        else
+                        {
+                            Error = " ";
+                        }
+
+                        break;
+
+                    case "Area":
+                        bool successArea = int.TryParse(Area.ToString(), out _);
+                        if (successArea)
+                        {
+                            if (Area < 1 || Area > 1000000)
+                            {
+                                Error = "Недопустимая площадь!";
+                            }
+                        }
+                        else
+                        {
+                            Error = " ";
+                        }
+                        break;
+
+                    case "Price":
+                        bool successPrice = int.TryParse(Price.ToString(), out _);
+                        if (successPrice)
+                        {
+                            if (Price < 1 || Price > 1000000000)
+                            {
+                                Error = "Недопустимая цена!";
+                            }
+                        }
+                        else
+                        {
+                            Error = " ";
+                        }
+                        break;
+
+                }
+                return Error;
+            }
+        }
+
+        public string Error
+        {
+            get; set;
+        }
 
         public string SelectedCadEng
         {

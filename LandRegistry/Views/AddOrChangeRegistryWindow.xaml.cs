@@ -15,7 +15,20 @@ namespace LandRegistry.Views
 
         private void Accept_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
+            if (string.IsNullOrEmpty(AOCRWVM.Error) 
+                && string.IsNullOrEmpty(AOCRWVM.Owner.Error)
+                && AOCRWVM.SelectedCadEng != null
+                && AOCRWVM.SelectedDistrict != null
+                && AOCRWVM.SelectedServiceUnit != null
+                && AOCRWVM.SelectedSettlement != null
+                && AOCRWVM.SelectedUsePurpose != null)
+            {
+                DialogResult = true;
+            }
+            else
+            {
+                MessageBox.Show("Имеются некорректные данные!");
+            }
         }
 
     }
