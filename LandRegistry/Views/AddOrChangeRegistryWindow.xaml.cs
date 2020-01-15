@@ -15,7 +15,7 @@ namespace LandRegistry.Views
 
         private void Accept_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(AOCRWVM.Error) 
+            if (string.IsNullOrEmpty(AOCRWVM.Error)
                 && string.IsNullOrEmpty(AOCRWVM.Owner.Error)
                 && AOCRWVM.SelectedCadEng != null
                 && AOCRWVM.SelectedDistrict != null

@@ -1,7 +1,6 @@
 ﻿namespace LandRegistry.ViewModels
 {
     using LandRegistry.Models;
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
@@ -56,8 +55,6 @@
         private string selectedServiceUnit;
 
         private string selectedCadEng;
-
-        private string error;
 
         public string this[string columnName]
         {

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
@@ -19,7 +18,7 @@ namespace LandRegistry.Models
         public string Patronymic { get; set; }
         public string Inn { get; set; }
         public string ConNum { get; set; }
-        public string Email { get; set; }        
+        public string Email { get; set; }
 
         public string this[string columnName]
         {
@@ -140,7 +139,7 @@ namespace LandRegistry.Models
                 return Error;
             }
         }
-        
+
         [NotMapped]
         public string Error
         {

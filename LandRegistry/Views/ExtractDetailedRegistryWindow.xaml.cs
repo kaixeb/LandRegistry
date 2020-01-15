@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Documents;
 
 namespace LandRegistry.Views
-{    
+{
     public partial class ExtractDetailedRegistryWindow : Window
     {
         public ExtractDetailedRegistryWindow(DetailedRegistry detailedRegistry)
