@@ -126,7 +126,7 @@ namespace LandRegistry.Models
                     case "Email":
                         string emailPpattern = @"^(?("")(""[^""]+?""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
                                          @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9]{2,17}))$";
-                        if (Email != null)
+                        if (Email != null && Email.Length != 0)
                         {
                             if (!Regex.IsMatch(Email, emailPpattern, RegexOptions.IgnoreCase))
                             {

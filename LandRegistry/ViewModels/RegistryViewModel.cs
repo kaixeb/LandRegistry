@@ -191,6 +191,12 @@
                                   AOCRWindow.AOCRWVM.Owner = lrdb.Owner.Find(detailedRegistry.Registry.OwnId);
                               }
 
+                              if (AOCRWindow.AOCRWVM.Owner.Patronymic == "-")
+                                  AOCRWindow.AOCRWVM.Owner.Patronymic = string.Empty;
+
+                              if (AOCRWindow.AOCRWVM.Owner.Email == "-")
+                                  AOCRWindow.AOCRWVM.Owner.Email = string.Empty;
+
                               AOCRWindow.AOCRWVM.SelectedServiceUnit = AOCRWindow.AOCRWVM.NumberedServiceUnitList.Find(su => su.SuId == detailedRegistry.Registry.SuId).Name;
                               AOCRWindow.AOCRWVM.SelectedCadEng = AOCRWindow.AOCRWVM.NumberedCadEngList.Find(ce => ce.CeId == detailedRegistry.Registry.CeId).Surname;
 
@@ -273,6 +279,16 @@
 
             Owner owner = AOCRWindow.AOCRWVM.Owner;
 
+            if (owner.Patronymic == string.Empty)
+            {
+                owner.Patronymic = "-";
+            }
+
+            if (owner.Email == string.Empty)
+            {
+                owner.Email = "-";
+            }
+
             foreach (District d in AOCRWindow.AOCRWVM.NumberedDistrictList)
             {
                 if (AOCRWindow.AOCRWVM.SelectedDistrict == d.Name)
@@ -331,6 +347,7 @@
                 var existOwners = (from existOwn in lrdb.Owner
                                    where existOwn.Inn == owner.Inn
                                    select existOwn).ToList();
+
                 if (existOwners.Count == 0) // если новый пользователь
                 {
                     owner.OwnId = lrdb.Owner.Count() + 1;
@@ -341,15 +358,18 @@
                 {
                     foreach (Owner existOwn in existOwners)
                     {
-                        owner.OwnId = existOwn.OwnId;
-                        owner.Name = existOwn.Name;
-                        owner.Surname = existOwn.Surname;
-                        owner.Patronymic = existOwn.Patronymic;
-                        owner.ConNum = existOwn.ConNum;
-                        owner.Email = existOwn.Email ?? "-";
-                    } //находим его и запоминаем
+                        existOwn.Name = owner.Name;
+                        existOwn.Surname = owner.Surname;
+                        existOwn.Patronymic = owner.Patronymic;
+                        existOwn.ConNum = owner.ConNum;
+                        existOwn.Email = owner.Email;
+
+                        lrdb.Owner.Update(existOwn);
+                        lrdb.SaveChanges();
+                    }
                 }
             }
+
             registry.OwnId = owner.OwnId;
             registry.UpdTime = DateTime.Now;
 
@@ -360,7 +380,7 @@
                 + " " + owner.Patronymic
                 + "\n" + owner.Inn
                 + "\n" + owner.ConNum
-                + "\n" + owner.Email ?? "-";
+                + "\n" + owner.Email;
 
             //добавляем в базу данных объект registry и в список объект detailedRegistry
             using (landregistrydbContext lrdb = new landregistrydbContext())
@@ -399,24 +419,23 @@
                                   UsePurposeInfo = u.Purpose,
                                   OwnerInfo = o.Surname
                                   + " " + o.Name
-                                  + " " + o.Patronymic
+                                  + " " + (o.Patronymic ?? "-")
                                   + "\n" + o.Inn
                                   + "\n" + o.ConNum
-                                  + "\n" + o.Email,
+                                  + "\n" + (o.Email ?? "-"),
                                   ServiceUnitInfo = su.Name
                                   + "\n" + su.Address
                                   + "\n" + su.StartTime.ToString()
                                   + "-" + su.EndTime.ToString()
                                   + "\n" + su.ConNum
                                   + "\n" + su.ChiefFullName
-                                  + "\n" + su.Email ?? "-",
+                                  + "\n" + su.Email,
                                   CadEngInfo = ce.Surname
                                   + " " + ce.Name
                                   + " " + ce.Patronymic,
                                   UpdTime = r.UpdTime,
                                   Registry = r
                               };
-
                 DetailedRegistryList = new ObservableCollection<DetailedRegistry>(records);
                 nonFilteredDetailedRegistryList = DetailedRegistryList;
             }

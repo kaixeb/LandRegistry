@@ -126,8 +126,7 @@ namespace LandRegistry.Models
                     .HasCharSet("utf8mb4")
                     .HasCollation("utf8mb4_0900_ai_ci");
 
-                entity.Property(e => e.Email)
-                    .HasColumnName("email")
+                entity.Property(e => e.Email)                    
                     .HasColumnType("varchar(30)")
                     .HasCharSet("utf8mb4")
                     .HasCollation("utf8mb4_0900_ai_ci");
@@ -145,8 +144,7 @@ namespace LandRegistry.Models
                     .HasCharSet("utf8mb4")
                     .HasCollation("utf8mb4_0900_ai_ci");
 
-                entity.Property(e => e.Patronymic)
-                    .IsRequired()
+                entity.Property(e => e.Patronymic)                    
                     .HasColumnName("patronymic")
                     .HasColumnType("varchar(30)")
                     .HasCharSet("utf8mb4")
