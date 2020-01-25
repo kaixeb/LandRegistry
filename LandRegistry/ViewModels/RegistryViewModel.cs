@@ -52,8 +52,7 @@
                 OnPropertyChanged("DetailedRegistryList");
             }
         }
-
-        //Поиск
+        
         private ObservableCollection<DetailedRegistry> nonFilteredDetailedRegistryList;
 
         private string cadNumSearchText;
@@ -82,6 +81,7 @@
         }
 
         private string settlementSearchText;
+
         public string SettlementSearchText
         {
             get => settlementSearchText;
@@ -175,48 +175,23 @@
                           DetailedRegistry detailedRegistry = obj as DetailedRegistry;
                           AddOrChangeRegistryWindow AOCRWindow = new AddOrChangeRegistryWindow();
 
-                          //Занесение данных из соответствующего объекта Registry у detailedRegistry в форму  
                           if (detailedRegistry != null)
                           {
-                              AOCRWindow.AOCRWVM.CadNum = detailedRegistry.CadNum;
-                              AOCRWindow.AOCRWVM.Address = detailedRegistry.Address;
-                              AOCRWindow.AOCRWVM.Area = detailedRegistry.Area;
-                              AOCRWindow.AOCRWVM.Price = detailedRegistry.Price;
-                              AOCRWindow.AOCRWVM.SelectedDistrict = AOCRWindow.AOCRWVM.NumberedDistrictList.Find(d => d.DisId == detailedRegistry.Registry.DisId).Name;
-                              AOCRWindow.AOCRWVM.SelectedSettlement = AOCRWindow.AOCRWVM.NumberedSettlementList.Find(s => s.SettlId == detailedRegistry.Registry.SettlId).Name;
-                              AOCRWindow.AOCRWVM.SelectedUsePurpose = AOCRWindow.AOCRWVM.NumberedUsePurposeList.Find(up => up.UpId == detailedRegistry.Registry.UpId).Purpose;
-
-                              using (landregistrydbContext lrdb = new landregistrydbContext())
-                              {
-                                  AOCRWindow.AOCRWVM.Owner = lrdb.Owner.Find(detailedRegistry.Registry.OwnId);
-                              }
-
-                              if (AOCRWindow.AOCRWVM.Owner.Patronymic == "-")
-                                  AOCRWindow.AOCRWVM.Owner.Patronymic = string.Empty;
-
-                              if (AOCRWindow.AOCRWVM.Owner.Email == "-")
-                                  AOCRWindow.AOCRWVM.Owner.Email = string.Empty;
-
-                              AOCRWindow.AOCRWVM.SelectedServiceUnit = AOCRWindow.AOCRWVM.NumberedServiceUnitList.Find(su => su.SuId == detailedRegistry.Registry.SuId).Name;
-                              AOCRWindow.AOCRWVM.SelectedCadEng = AOCRWindow.AOCRWVM.NumberedCadEngList.Find(ce => ce.CeId == detailedRegistry.Registry.CeId).Surname;
-
-                              //Меняем заголовок окна и иконку
+                              //Занесение данных из соответствующего объекта Registry у detailedRegistry в форму  
+                              FillAOCRWindowFromDetailedRegistry(AOCRWindow, detailedRegistry);
+                              
+                              //Смена заголовка окна и иконки
                               AOCRWindow.Title = "Изменение";
                               Uri iconUri = new Uri("pack://application:,,,/Views/playlist-edit.png", UriKind.RelativeOrAbsolute);
                               AOCRWindow.Icon = BitmapFrame.Create(iconUri);
 
                               if (AOCRWindow.ShowDialog() == true) // Если диалог успешен, то добавляем измененную запись
                               {
-                                  using (landregistrydbContext lrdb = new landregistrydbContext()) //удаляем старую запись
-                                  {
-                                      lrdb.Registry.Remove(detailedRegistry.Registry);
-                                      lrdb.SaveChanges();
-                                  }
+                                  DeleteRegistryFromDB(detailedRegistry); //удаляем старую запись Registry
                                   DetailedRegistryList = nonFilteredDetailedRegistryList;
                                   DetailedRegistryList.Remove(detailedRegistry); // убираем из списка
                                   nonFilteredDetailedRegistryList = DetailedRegistryList;
                                   Registry registry = new Registry(); //новая запись для бд
-
                                   AddNewDetailedRegistry(detailedRegistry, registry, AOCRWindow); //добавляем новую запись в бд и в список
                               }
                           }
@@ -224,7 +199,7 @@
                       (obj) => DetailedRegistryList.Count > 0));
             }
         }
-
+        
         public RelayCommand DeleteCommand
         {
             get
@@ -235,16 +210,10 @@
                           DetailedRegistry detailedRegistry = obj as DetailedRegistry;
                           if (detailedRegistry != null)
                           {
-                              CadNumSearchText = null;
-                              DistrictSearchText = null;
-                              SettlementSearchText = null;
+                              ClearSearchBoxes();
                               DetailedRegistryList.Remove(detailedRegistry);
                               nonFilteredDetailedRegistryList = DetailedRegistryList;
-                              using (landregistrydbContext lrdb = new landregistrydbContext())
-                              {
-                                  lrdb.Registry.Remove(detailedRegistry.Registry); //удаление из базы данных соответствующего объекта registry                                  
-                                  lrdb.SaveChanges();
-                              }
+                              DeleteRegistryFromDB(detailedRegistry); //удаление из базы данных соответствующего объекта registry                                                                
                           }
                       },
                       (obj) => DetailedRegistryList.Count > 0));
@@ -267,6 +236,13 @@
                       },
                     (obj) => DetailedRegistryList.Count > 0));
             }
+        }
+
+        private void ClearSearchBoxes()
+        {
+            CadNumSearchText = null;
+            DistrictSearchText = null;
+            SettlementSearchText = null;
         }
 
         private void AddNewDetailedRegistry(DetailedRegistry detailedRegistry, Registry registry, AddOrChangeRegistryWindow AOCRWindow)
@@ -342,6 +318,35 @@
                 }
             }
 
+            //Заполняем или находим существующего владельца участка
+            FillOrFindOwner(owner);
+
+            registry.OwnId = owner.OwnId;
+            registry.UpdTime = DateTime.Now;
+
+            detailedRegistry.Registry = registry;
+            detailedRegistry.UpdTime = registry.UpdTime;
+            detailedRegistry.OwnerInfo = owner.Surname
+                + " " + owner.Name
+                + " " + owner.Patronymic
+                + "\n" + owner.Inn
+                + "\n" + owner.ConNum
+                + "\n" + owner.Email;
+
+            //добавляем в базу данных объект registry
+            AddRegistryToDB(registry);
+
+            ClearSearchBoxes();
+
+            //Добавляем в список объект detailedRegistry
+            DetailedRegistryList.Add(detailedRegistry);
+
+            nonFilteredDetailedRegistryList = DetailedRegistryList;
+            SelectedRegistry = detailedRegistry;
+        }
+
+        private void FillOrFindOwner(Owner owner)
+        {
             using (landregistrydbContext lrdb = new landregistrydbContext())
             {
                 var existOwners = (from existOwn in lrdb.Owner
@@ -369,32 +374,48 @@
                     }
                 }
             }
+        }
 
-            registry.OwnId = owner.OwnId;
-            registry.UpdTime = DateTime.Now;
+        private void DeleteRegistryFromDB(DetailedRegistry detailedRegistry)
+        {
+            using (landregistrydbContext lrdb = new landregistrydbContext())
+            {
+                lrdb.Registry.Remove(detailedRegistry.Registry);
+                lrdb.SaveChanges();
+            }
+        }
 
-            detailedRegistry.Registry = registry;
-            detailedRegistry.UpdTime = registry.UpdTime;
-            detailedRegistry.OwnerInfo = owner.Surname
-                + " " + owner.Name
-                + " " + owner.Patronymic
-                + "\n" + owner.Inn
-                + "\n" + owner.ConNum
-                + "\n" + owner.Email;
-
-            //добавляем в базу данных объект registry и в список объект detailedRegistry
+        private void AddRegistryToDB(Registry registry)
+        {
             using (landregistrydbContext lrdb = new landregistrydbContext())
             {
                 lrdb.Registry.Add(registry);
                 lrdb.SaveChanges();
             }
+        }
 
-            CadNumSearchText = null;
-            DistrictSearchText = null;
-            SettlementSearchText = null;
-            DetailedRegistryList.Add(detailedRegistry);
-            nonFilteredDetailedRegistryList = DetailedRegistryList;
-            SelectedRegistry = detailedRegistry;
+        private void FillAOCRWindowFromDetailedRegistry(AddOrChangeRegistryWindow AOCRWindow, DetailedRegistry detailedRegistry)
+        {
+            AOCRWindow.AOCRWVM.CadNum = detailedRegistry.CadNum;
+            AOCRWindow.AOCRWVM.Address = detailedRegistry.Address;
+            AOCRWindow.AOCRWVM.Area = detailedRegistry.Area;
+            AOCRWindow.AOCRWVM.Price = detailedRegistry.Price;
+            AOCRWindow.AOCRWVM.SelectedDistrict = AOCRWindow.AOCRWVM.NumberedDistrictList.Find(d => d.DisId == detailedRegistry.Registry.DisId).Name;
+            AOCRWindow.AOCRWVM.SelectedSettlement = AOCRWindow.AOCRWVM.NumberedSettlementList.Find(s => s.SettlId == detailedRegistry.Registry.SettlId).Name;
+            AOCRWindow.AOCRWVM.SelectedUsePurpose = AOCRWindow.AOCRWVM.NumberedUsePurposeList.Find(up => up.UpId == detailedRegistry.Registry.UpId).Purpose;
+            using (landregistrydbContext lrdb = new landregistrydbContext())
+            {
+                AOCRWindow.AOCRWVM.Owner = lrdb.Owner.Find(detailedRegistry.Registry.OwnId);
+            }
+
+            if (AOCRWindow.AOCRWVM.Owner.Patronymic == "-")
+                AOCRWindow.AOCRWVM.Owner.Patronymic = string.Empty;
+
+            if (AOCRWindow.AOCRWVM.Owner.Email == "-")
+                AOCRWindow.AOCRWVM.Owner.Email = string.Empty;
+
+            AOCRWindow.AOCRWVM.SelectedServiceUnit = AOCRWindow.AOCRWVM.NumberedServiceUnitList.Find(su => su.SuId == detailedRegistry.Registry.SuId).Name;
+            AOCRWindow.AOCRWVM.SelectedCadEng = AOCRWindow.AOCRWVM.NumberedCadEngList.Find(ce => ce.CeId == detailedRegistry.Registry.CeId).Surname;
         }
 
         private void FillRegListWithRecords()
@@ -444,7 +465,7 @@
         private void SetCurUser()
         {
             Window RegistryForm = Application.Current.Windows[0] as Window;
-
+            
             try
             {
                 foreach (Window window in Application.Current.Windows)

@@ -23,23 +23,40 @@ namespace LandRegistry
         private void AdminEntrance_Click(object sender, RoutedEventArgs e)
         {
             CurUser = User.Admin;
+
+            if (AdminAuthentication(AdminPass.Password, 1))
+            {
+                RegistryWindow registryWindow = new RegistryWindow();
+                registryWindow.Show();
+                Close();
+            }
+            else
+            {
+                AdminPass.BorderBrush = new SolidColorBrush(Colors.Red);
+            }
+        }
+
+        private bool AdminAuthentication(string adminPassword, int adminId)
+        {
+            Users admin = GetUserByPassAndId(adminPassword, adminId);
+            return admin != null;
+        }
+
+        private Users GetUserByPassAndId(string password, int id)
+        {
+            Users reqUser = null;
             using (landregistrydbContext lrdb = new landregistrydbContext())
             {
                 var users = lrdb.Users.ToList();
                 foreach (var user in users)
                 {
-                    if (user.Password == AdminPass.Password && user.UserId == 1)
+                    if (user.Password == password && user.UserId == id)
                     {
-                        RegistryWindow registryWindow = new RegistryWindow();
-                        registryWindow.Show();
-                        Close();
-                    }
-                    else
-                    {
-                        AdminPass.BorderBrush = new SolidColorBrush(Colors.Red);
+                        reqUser = user;
                     }
                 }
             }
+            return reqUser;
         }
     }
 }
